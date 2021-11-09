@@ -26,8 +26,10 @@ session_start();
 </body>
 
 <?php
+$loggedtrue= false;
 if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
     require_once '/home/mir/lib/db.php';
+
     if (login($_SESSION['uid'], $_SESSION['password'])) {
         $loggedtrue = true;
     } else {
@@ -84,7 +86,21 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
                 echo "<section style= 'border:thin; border-style: solid; background-color: white'>";
                 $comment = get_comment($cid); //Vi henter information om den enkelte kommentar fra databasen.
                 //Hvorefter vi indsætter et link til forfatterens. Og derefter kommentarens indhold.
-                echo "<h5><a href=\"" . "user.php?uid=" . $comment['uid'] . "\" >" . $comment['uid']  . "</a></h5>";
+                echo "<h5><a href=\"" . "user.php?uid=" . $comment['uid'] . "\" >" . $comment['uid']  . "</a>";
+
+                //Edit a comment written by us:
+                if($loggedtrue and $comment['uid']==$_SESSION['uid']){
+                    echo "  <a href=''>Rediger kommentar</a>";
+
+                }
+
+                //Sletning af egen kommentar eller kommentarer fra ens egen post
+                if($loggedtrue and ($comment['uid']==$_SESSION['uid'] or $post['uid']==$_SESSION['uid'])){
+                    echo "  <a href=''>Slet kommentar</a>";
+                }
+
+                echo "</h5>";
+
                 echo "<p>" . $comment['content'] . "</p>";
                 echo "</section>";
             }
