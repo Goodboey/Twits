@@ -13,7 +13,10 @@ session_start();
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <style>
-        img {
+        body {
+            overflow: hidden; /* vi gemmer scrollbaren */
+            }
+        img { /* prøver at fikse billeder */
             max-width: 100%;
             max-height: 100%
         }
@@ -23,6 +26,25 @@ session_start();
             width: 100%;
             text-decoration: none;
             position: absolute;
+        }
+	
+	    .image-wrapper > div {
+		    position: relative;
+	    }
+	
+	    .image-wrapper > div > div {
+		    position: absolute;
+		    top: 0;
+		    right: 0;
+		    bottom: 0;
+		    left: 0;
+	    }
+	
+	    .image-wrapper > div > div > img {
+		    max-width: 100%;
+	    }
+        p{
+            overflow-wrap: anywhere;
         }
     </style>
 </head>
@@ -57,8 +79,8 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
     <div class='col-lg-9' style='border:darkslateblue; border-style: solid; overflow-y: auto; max-height: 100vh'>
         <?php
         if ($loggedtrue == true){
-            echo "<div class='col-lg-12' style='border:black; border-style: solid;'> 
-            <form action='main.php' method=post>
+            echo "<div class='col-lg-12' style='border:grey; border-style: solid;'> 
+            <form action='main.php' method=post enctype='multipart/form-data'>
             <table>
                 <tr>
                     <td>Titel:</td>
@@ -70,13 +92,29 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
                 </tr>
                 <tr>
                     <td></td>
+                    <td><input type='file' name='picture' value='Upload et billede!'></td>
+                </tr>
+                <tr>
+                    <td></td>
                     <td><input type='submit' name='submitbtn' value='Post!'></td>
                 </tr>
             </table>
         </form>
-                  </div>";
-            if (/*isset($_POST['ptitel']) & isset($_POST['pcontent']) & */isset($_POST['submitbtn'])) {
-                add_post($_SESSION['uid'], $_POST['ptitle'], $_POST['pcontent']);
+        </div>";
+            if (isset($_POST['submitbtn'])& isset($_POST['ptitle']) & isset($_POST['pcontent'])) {
+            
+                $pid = add_post($_SESSION['uid'], $_POST['ptitle'], $_POST['pcontent']);
+                if (isset($_FILES['picture']['type'])){
+
+                    $temptype = substr($_FILES['picture']['type'], strpos($_FILES['picture']['type'],'/')+1);
+                    $iid = add_image($_FILES['picture']['tmp_name'], $temptype);
+                    
+                    if ($iid > 0){
+                        move_uploaded_file($_FILES['picture']['tmp_name'], $_FILES['picture']['name']);
+                        add_attachment($pid, $iid);
+                    }
+                }
+                
                 header("Refresh:0");
             }
         }
@@ -92,7 +130,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
         array_multisort($order, SORT_DESC, $posts);
         foreach ($posts as $post) {
             $user = get_user($post['uid']);  //Vi benytter brugerid'et fra posten til at finde info om forfatteren.
-            echo "<div onclick='location.href=".'"postview.php"'.";' style='cursor: pointer;'>";
+            echo "<div onclick='location.href=".'"viewpost.php?pid='.$post['pid'].'"'.";' style='cursor: pointer;'>";
             //echo "<a href='postview.php' class='fill-div'></a>";
             //Titel og forfatter
             echo "<div class='row'>";
@@ -110,7 +148,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
             foreach ($images as $iid) { //for hvert billede knyttet til posten tilføjer vi et html img tag med billedets path.
                 $path = get_image($iid)['path'];
 
-                echo "<div class = 'col-lg-6'><img class='rounded float-right' src=\"" . $path . "\"" . "></div>";
+                echo "<div class = 'image-wrapper' style='max-width: 500px;'><div style='padding: 0 0 60%'><div><img class='rounded float-right' src=\"" . $path . "\"" . "></div></div></div>";
             }
             echo "</div>";
             echo "</div>";
@@ -142,7 +180,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
 
                 echo "</h5>";
 
-                echo "<p>" . $comment['content'] . "</p>";
+                echo "<p style = 'overflow-wrap: anywhere;'>" . $comment['content'] . "</p>";
                 echo "</section>";
                 $toomanycomments++;
 
