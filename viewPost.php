@@ -28,7 +28,6 @@ require_once '/home/mir/lib/db.php';
 <body>
 <?php
     if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
-    require_once '/home/mir/lib/db.php';
 
     if (login($_SESSION['uid'], $_SESSION['password'])) {
         //We do nothing, if stuff is correct
@@ -65,26 +64,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     //Logik til tilføjelse af kommentarer:
 
-    if (isset($_POST['pid'])){
+    if (isset($_POST['addCid'])){
         //We have a pid as get argument, now we check if we have any data on this post:
-        $post = get_post($_POST['pid']);
+
+        $post = get_post($_POST['addCid']);
         if (empty($post)){
             //If we don't have any data on the post we just send the user back
-            header("Location: /~seno/miniprojekt/main.php");
+
+            //header("Location: /~seno/miniprojekt/main.php");
         }else{
             $content = ($_POST["content"]);
-            echo "Prøver at tilføje kommentar: " . $_SESSION['uid'] .  $post['pid'] . $content;
+            //echo "Prøver at tilføje kommentar: " . $_SESSION['uid'] .  $post['pid'] . $content;
             add_comment($_SESSION['uid'], $post['pid'], $content);
         }
-    }else{
-        echo ":(";
     }
 
     //Logik til ændringer af posts:
-
+    if(isset($_POST['editPost'])){
+        //echo "Someone wants to edit stuffs!?";
+        //TODO sørg for at vi har rettigheder til at ændre denne post.
+        //modify_post(int $pid, string $title, string $content);
+        modify_post($_POST['modifyPost'],$_POST['title'],$_POST['content']);
+    }
 
     //logik til slettelse af kommentarer:
-
+    if(isset($_POST['delCid'])){
+        //Vi prøver at slette en kommentar.
+        //Vi skal TODO sikre os at vi har at gøre med en bruger som har lov til at slette:
+        //echo "Vi forsøger at slette kommentaren med id: " . $_POST['delCid'];
+        delete_comment($_POST['delCid']);
+    }
 
 }
 ?>
@@ -101,15 +110,30 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
             //Titlen bliver skrevet og et link bliver lagt ind til brugerens side med forfatterens navn
 
             //Indhold
+
             echo "<div class='col-lg-12' style='border:thick; border-style: groove; background-color: white' >";
+
+            //TODO tilbage knap
+            echo "<button><a href='main.php' >Gå tilbage</a></button>";
+            //TODO rediger knap
+            echo "<form method='get'> 
+                <input type='hidden' id='pid' name='pid' value=". $post['pid']  . ">
+                <input type='hidden' id='edit' name='edit' value='true' >
+                <input type='submit' value='Rediger post'>
+            </form>
+            ";
+
+
             //Faktiske indhold:
             if($isEditingPost){
                 //Hvis vi redigerer laver vi en form til vores indhold
                 echo "
-                <form method='post'>
-                    Titel <br><input type=\"text\" name=\"title\" value=\"" . $post['title'] . "> <br>
-                    Indhold <br><input type=\"textarea\"   name=\"content\" value=\"" . $post['content'] . "> <br>
+                <form method='post' action=\"" . htmlspecialchars($_SERVER["PHP_SELF"]) . "?pid=" . $post['pid'] .   "\">
+                    <input type='hidden' id='modifyPost' name='modifyPost' value=". $post['pid']  . ">
+                    Titel <br><input type=\"text\" name=\"title\" value=\"" . $post['title'] . "\"> <br>
+                    Indhold <br><textarea rows=\"5\" cols=\"40\" name=\"content\" >". $post['content'] .  " </textarea> <br>
                     <input type=\"submit\" value=\"Gem ændringer\" name='editPost'>
+                    </form>
                 ";
 
 
@@ -144,7 +168,10 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
 
                 //Sletning af egen kommentar eller kommentarer fra ens egen post
                 if($comment['uid']==$_SESSION['uid'] or $post['uid']==$_SESSION['uid']){
-                    echo "  <button value='Slet kommentar'></button>";
+                    echo "<form method='post' action=\"" . htmlspecialchars($_SERVER["PHP_SELF"]) . "?pid=" . $post['pid'] .  "\">
+                            <input type='hidden' id='delCid' name='delCid' value=". $cid  . ">
+                            <input type='submit' value='Slet kommentar' >
+                            </form>";
 
                 }
 
@@ -161,11 +188,11 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
 <form method="post" action="<?php
 
 
-echo htmlspecialchars($_SERVER["PHP_SELF"]);
+echo htmlspecialchars($_SERVER["PHP_SELF"]) . "?pid=" . $post['pid'];
 
 ?>">
-    Indtast kommentar: <textarea name="content" rows="5" cols="40"><?php echo $content;?></textarea>
-    <input type="number" name="pid" value="<?php echo $post['pid']; ?>">
+    Indtast kommentar: <textarea name="content" rows="5" cols="40"></textarea>
+    <input type='hidden' id='addCid' name='addCid' value="<?php echo $post['pid'] ?>">
     <br>
     <input type="submit" value="Gem kommentar">
 </form>
