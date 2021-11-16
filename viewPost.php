@@ -116,12 +116,14 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
             //TODO tilbage knap
             echo "<button><a href='main.php' >Gå tilbage</a></button>";
             //TODO rediger knap
-            echo "<form method='get'> 
-                <input type='hidden' id='pid' name='pid' value=". $post['pid']  . ">
+            if($post['uid']==$_SESSION['uid']) {
+                echo "<form method='get'> 
+                <input type='hidden' id='pid' name='pid' value=" . $post['pid'] . ">
                 <input type='hidden' id='edit' name='edit' value='true' >
                 <input type='submit' value='Rediger post'>
             </form>
             ";
+            }
 
 
             //Faktiske indhold:
