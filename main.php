@@ -17,6 +17,13 @@ session_start();
             max-width: 100%;
             max-height: 100%
         }
+        a.fill-div {
+            display: block;
+            height: 100%;
+            width: 100%;
+            text-decoration: none;
+            position: absolute;
+        }
     </style>
 </head>
 <html>
@@ -39,6 +46,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
 } else {
     header("Location: /~seno/miniprojekt/login.php");
 }
+
 ?>
 <div class='row'>
 
@@ -48,6 +56,31 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
     </div>
     <div class='col-lg-9' style='border:darkslateblue; border-style: solid; overflow-y: auto; max-height: 100vh'>
         <?php
+        if ($loggedtrue == true){
+            echo "<div class='col-lg-12' style='border:black; border-style: solid;'> 
+            <form action='main.php' method=post>
+            <table>
+                <tr>
+                    <td>Titel:</td>
+                    <td><input type='text' name='ptitle'></td>
+                </tr>
+                <tr>
+                    <td>Vis mig dine tanker:</td>
+                    <td><input type='text' name='pcontent'></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input type='submit' name='submitbtn' value='Post!'></td>
+                </tr>
+            </table>
+        </form>
+                  </div>";
+            if (/*isset($_POST['ptitel']) & isset($_POST['pcontent']) & */isset($_POST['submitbtn'])) {
+                add_post($_SESSION['uid'], $_POST['ptitle'], $_POST['pcontent']);
+                header("Refresh:0");
+            }
+        }
+        
         $pids = get_pids();
         foreach ($pids as $pid) {
             $posts[] = get_post($pid);
@@ -59,9 +92,11 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
         array_multisort($order, SORT_DESC, $posts);
         foreach ($posts as $post) {
             $user = get_user($post['uid']);  //Vi benytter brugerid'et fra posten til at finde info om forfatteren.
-            echo "<div>";
+            echo "<div onclick='location.href=".'"postview.php"'.";' style='cursor: pointer;'>";
+            //echo "<a href='postview.php' class='fill-div'></a>";
             //Titel og forfatter
             echo "<div class='row'>";
+            
             echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['title'] . "</h2></div>" . "<h3>skrevet af: <a href=\"" . "user.php?uid=" . $user['uid'] . "\" >" .  $user['firstname'] . " " . $user['lastname'] . "</a></h3><div>". $post['date'] ."</div>";
             //Titlen bliver skrevet og et link bliver lagt ind til brugerens side med forfatterens navn
 
@@ -81,8 +116,14 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
             echo "</div>";
 
             //Kommentarer
-            $comments = get_cids_by_pid($post); //Vi henter et array af comment ids til oplæggets id
+            $comments = get_cids_by_pid($post['pid']); //Vi henter et array af comment ids til oplæggets id
             foreach ($comments as $cid) { //Vi kører igennem arrayet for hvert kommentar ID
+                
+                if($toomanycomments > 4){
+                    //echo "<div><h5> 'Vis alle kommentarer' </h5></div>";
+                    $toomanycomments = 0;
+                    //break;
+                }
                 echo "<section style= 'border:thin; border-style: solid; background-color: white'>";
                 $comment = get_comment($cid); //Vi henter information om den enkelte kommentar fra databasen.
                 //Hvorefter vi indsætter et link til forfatterens. Og derefter kommentarens indhold.
@@ -103,6 +144,12 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
 
                 echo "<p>" . $comment['content'] . "</p>";
                 echo "</section>";
+                $toomanycomments++;
+
+                if ($toomanycomments == count($comments)){
+                    $toomanycomments = 0;
+                }
+
             }
             echo "</div><div class='row'> <br> </div>";
         }
