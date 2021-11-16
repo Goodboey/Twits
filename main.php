@@ -30,7 +30,6 @@ session_start();
 
 <body style="background-color:wheat">
 
-</body>
 
 <?php
 $loggedtrue= false;
@@ -80,7 +79,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
                 header("Refresh:0");
             }
         }
-        
+
         $pids = get_pids();
         foreach ($pids as $pid) {
             $posts[] = get_post($pid);
@@ -96,7 +95,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
             //echo "<a href='postview.php' class='fill-div'></a>";
             //Titel og forfatter
             echo "<div class='row'>";
-            
+
             echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['title'] . "</h2></div>" . "<h3>skrevet af: <a href=\"" . "user.php?uid=" . $user['uid'] . "\" >" .  $user['firstname'] . " " . $user['lastname'] . "</a></h3><div>". $post['date'] ."</div>";
             //Titlen bliver skrevet og et link bliver lagt ind til brugerens side med forfatterens navn
 
@@ -118,7 +117,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
             //Kommentarer
             $comments = get_cids_by_pid($post['pid']); //Vi henter et array af comment ids til oplæggets id
             foreach ($comments as $cid) { //Vi kører igennem arrayet for hvert kommentar ID
-                
+
                 if($toomanycomments > 4){
                     //echo "<div><h5> 'Vis alle kommentarer' </h5></div>";
                     $toomanycomments = 0;
@@ -160,9 +159,16 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
 
     <div class='col-lg-2'>
         <?php
-        echo "<p><a href='logout.php'>Log ud</p></a>";
+        if($loggedtrue) {
+            echo "<p><a href='logout.php'>Log ud</p></a>";
+        }else{
+            echo "<p><a href='login.php.php'>Log ind</p></a>";
+            echo "<p><a href='signup.php'>Opret konto</a></p>";
+        }
+
+
         ?>
     </div>
 </div>
-
+</body>
 </html>
