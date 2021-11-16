@@ -7,7 +7,7 @@ session_start();
 <!doctype html>
 
 <head>
-    <link rel="icon" href="/~seno/miniprojekt/sideicon.ico">
+    <link rel="icon" href="/~seno/miniprojekt/goofy.ico">
     <title>Twits</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -54,18 +54,12 @@ session_start();
 
 
 <?php
+require_once '/home/mir/lib/db.php';
 $loggedtrue= false;
 if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
-    require_once '/home/mir/lib/db.php';
-
     if (login($_SESSION['uid'], $_SESSION['password'])) {
         $loggedtrue = true;
-    } else {
-        $_SESSION["userinfo_correct"] = false;
-        header("Location: /~seno/miniprojekt/login.php");
     }
-} else {
-    header("Location: /~seno/miniprojekt/login.php");
 }
 
 ?>
@@ -98,9 +92,9 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
                     <td><input type='submit' name='submitbtn' value='Post!'></td>
                 </tr>
             </table>
-        </form>
-        </div>";
-            if (isset($_POST['submitbtn'])& isset($_POST['ptitle']) & isset($_POST['pcontent'])) {
+            </form>
+            </div>";
+            if (isset($_POST['submitbtn']) & isset($_POST['ptitle']) & isset($_POST['pcontent'])) {
             
                 $pid = add_post($_SESSION['uid'], $_POST['ptitle'], $_POST['pcontent']);
                 if (isset($_FILES['picture']['type'])){
@@ -129,16 +123,20 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
         array_multisort($order, SORT_DESC, $posts);
         foreach ($posts as $post) {
             $user = get_user($post['uid']);  //Vi benytter brugerid'et fra posten til at finde info om forfatteren.
-            echo "<div onclick='location.href=".'"viewpost.php?pid='.$post['pid'].'"'.";' style='cursor: pointer;'>";
+            if($loggedtrue){
+                echo "<div onclick='location.href=".'"viewpost.php?pid='.$post['pid'].'"'.";' style='cursor: pointer;'>";
+            } else {
+                echo "<div>";
+            }
             //echo "<a href='postview.php' class='fill-div'></a>";
             //Titel og forfatter
             echo "<div class='row'>";
 
-            echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['title'] . "</h2></div>" . "<h3>skrevet af: <a href=\"" . "user.php?uid=" . $user['uid'] . "\" >" .  $user['firstname'] . " " . $user['lastname'] . "</a></h3><div>". $post['date'] ."</div>";
+            echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . htmlentities($post['title']) . "</h2></div>" . "<h3>skrevet af: <a href=\"" . "user.php?uid=" . $user['uid'] . "\" >" .  htmlentities($user['firstname']) . " " . htmlentities($user['lastname']) . "</a></h3><div>". $post['date'] ."</div>";
             //Titlen bliver skrevet og et link bliver lagt ind til brugerens side med forfatterens navn
 
             //Indhold
-            echo "<p><div class='col-lg-12' style='border:thick; border-style: groove; background-color: white' >" . $post['content'] . "</div></p>";
+            echo "<p><div class='col-lg-12' style='border:thick; border-style: groove; background-color: white' >" . htmlentities($post['content']) . "</div></p>";
 
             //Billeder
 
@@ -164,22 +162,11 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
                 echo "<section style= 'border:thin; border-style: solid; background-color: white'>";
                 $comment = get_comment($cid); //Vi henter information om den enkelte kommentar fra databasen.
                 //Hvorefter vi indsætter et link til forfatterens. Og derefter kommentarens indhold.
-                echo "<h5><a href=\"" . "user.php?uid=" . $comment['uid'] . "\" >" . $comment['uid']  . "</a>";
-
-                //Edit a comment written by us:
-                if($loggedtrue and $comment['uid']==$_SESSION['uid']){
-                    echo "  <a href=''>Rediger kommentar</a>";
-
-                }
-
-                //Sletning af egen kommentar eller kommentarer fra ens egen post
-                if($loggedtrue and ($comment['uid']==$_SESSION['uid'] or $post['uid']==$_SESSION['uid'])){
-                    echo "  <a href=''>Slet kommentar</a>";
-                }
+                echo "<h5><a href=\"" . "user.php?uid=" . $comment['uid'] . "\" >" . htmlentities($comment['uid'])  . "</a>";
 
                 echo "</h5>";
 
-                echo "<p style = 'overflow-wrap: anywhere;'>" . $comment['content'] . "</p>";
+                echo "<p style = 'overflow-wrap: anywhere;'>" . htmlentities($comment['content']) . "</p>";
                 echo "</section>";
                 $toomanycomments++;
 
@@ -200,7 +187,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
         if($loggedtrue) {
             echo "<p><a href='logout.php'>Log ud</p></a>";
         }else{
-            echo "<p><a href='login.php.php'>Log ind</p></a>";
+            echo "<p><a href='login.php'>Log ind</p></a>";
             echo "<p><a href='signup.php'>Opret konto</a></p>";
         }
 
