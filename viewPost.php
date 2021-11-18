@@ -74,24 +74,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             //header("Location: /~seno/miniprojekt/main.php");
         }else{
             $content = ($_POST["content"]);
-            //echo "Pr�ver at tilf�je kommentar: " . $_SESSION['uid'] .  $post['pid'] . $content;
+            //echo "Prøver at tilføje kommentar: " . $_SESSION['uid'] .  $post['pid'] . $content;
             add_comment($_SESSION['uid'], $post['pid'], $content);
         }
     }
 
-    //Logik til �ndringer af posts:
+    //Logik til ændringer af posts:
     if(isset($_POST['editPost'])){
         //echo "Someone wants to edit stuffs!?";
-        //TODO s�rg for at vi har rettigheder til at �ndre denne post.
+        //TODO sørg for at vi har rettigheder til at ændre denne post.
         //modify_post(int $pid, string $title, string $content);
-        modify_post($_POST['modifyPost'],$_POST['title'],$_POST['content']);
+        if($_SESSION['uid']==get_post($_POST['modifyPost'])['uid']){
+            modify_post($_POST['modifyPost'],$_POST['title'],$_POST['content']);
+        }
     }
 
     //logik til slettelse af kommentarer:
     if(isset($_POST['delCid'])){
-        //Vi pr�ver at slette en kommentar.
-        //Vi skal TODO sikre os at vi har at g�re med en bruger som har lov til at slette:
-        //echo "Vi fors�ger at slette kommentaren med id: " . $_POST['delCid'];
+        //Vi prøver at slette en kommentar.
+        //Vi skal TODO sikre os at vi har at gøre med en bruger som har lov til at slette:
+        //echo "Vi forsøger at slette kommentaren med id: " . $_POST['delCid'];
         delete_comment($_POST['delCid']);
     }
 
@@ -106,7 +108,7 @@ $user = get_user($post['uid']);  //Vi benytter brugerid'et fra posten til at fin
 
 $isEditingPost= ($_GET['edit']=="true" and $post['uid']==$_SESSION['uid']);
 
-echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . htmlentities($post['title']) . "</h2></div>" . "<h3>skrevet af: <a href=\"" . "user.php?uid=" . $user['uid'] . "\" >" .  htmlentities($user['firstname']) . " " . htmlentities($user['lastname']) . "</a></h3><div>". $post['date'] ."</div>";
+echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . htmlentities($post['title']) . "</h2></div>" . "<h3>skrevet af: " .  htmlentities($user['firstname']) . " " . htmlentities($user['lastname']) . "</h3><div>". $post['date'] ."</div>";
             //Titlen bliver skrevet og et link bliver lagt ind til brugerens side med forfatterens navn
 
             //Indhold
@@ -134,7 +136,7 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . htmlentit
                     <input type='hidden' id='modifyPost' name='modifyPost' value=". $post['pid']  . ">
                     Titel <br><input type=\"text\" name=\"title\" value=\"" . htmlentities($post['title']) . "\"> <br>
                     Indhold <br><textarea rows=\"5\" cols=\"40\" name=\"content\" >". htmlentities($post['content']) .  " </textarea> <br>
-                    <input type=\"submit\" value=\"Gem �ndringer\" name='editPost'>
+                    <input type=\"submit\" value=\"Gem ændringer\" name='editPost'>
                     </form>
                 ";
 
@@ -165,7 +167,7 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . htmlentit
                 echo "<section style= 'border:thin; border-style: solid; background-color: white'>";
                 $comment = get_comment($cid); //Vi henter information om den enkelte kommentar fra databasen.
                 //Hvorefter vi inds�tter et link til forfatterens. Og derefter kommentarens indhold.
-                echo "<h5><a href=\"" . "user.php?uid=" . $comment['uid'] . "\" >" . htmlentities($comment['uid'])  . "</a>";
+                echo "<h5>" . htmlentities($comment['uid']);
 
 
                 //Sletning af egen kommentar eller kommentarer fra ens egen post
@@ -193,7 +195,7 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . htmlentit
 echo htmlspecialchars($_SERVER["PHP_SELF"]) . "?pid=" . $post['pid'];
 
 ?>">
-    Indtast kommentar: <textarea name="content" rows="5" cols="40"></textarea>
+    Indtast kommentar: <br><textarea name="content" rows="5" cols="40"></textarea>
     <input type='hidden' id='addCid' name='addCid' value="<?php echo $post['pid'] ?>">
     <br>
     <input type="submit" value="Gem kommentar">
