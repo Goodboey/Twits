@@ -15,30 +15,27 @@
         }
     </style>
 </head>
-
+<body style="background-color:wheat">
 <?php
 
-if (isset($_SESSION["userinfo_correct"]) & !$_SESSION["userinfo_correct"]){
-    echo "Password or username is incorrect!";
-}
-if (isset($_POST['user']) & isset($_POST['pw'])) {
+// Hvis brugeren har sat information ind, skal vi give det til sessionen
+if (!isset($_POST['user']) & isset($_POST['pw'])) {
     $_SESSION["uid"] = $_POST['user'];
     $_SESSION["password"] = $_POST['pw'];
 }
 
-/*if (isset($_SESSION["uid"]) & isset($_POST['pw'])) {
-    echo "uid = ", $_SESSION["uid"];
-    echo "   &   password er også sat";
-} else {
-    echo "der er ikke noget sat";
-}*/
+require_once '/home/mir/lib/db.php';
 
-if (isset($_POST['submitbutton']) & isset($_SESSION['uid'])) {
+// vi checker om de brugerdata i sessionen findes i databasen, hvis ikke, siger vi at brugernavn eller kodeord er forkert.
+if (isset($_POST['submitbutton']) & login($_SESSION['uid'], $_SESSION['password']) !== true){
+    echo "Password or username is incorrect!";
+} elseif (isset($_POST['submitbutton']) & login($_SESSION['uid'], $_SESSION['password']) == true){
     header("Location: /~seno/miniprojekt/main.php");
 }
 
 ?>
 
+<!-- Login-form, som er centreret på skærmen, inputs bliver gemt i $_POST variabler pga. formens method -->
 <div class = "center">
 <form action="login.php" method=post>
     <table>
@@ -57,5 +54,5 @@ if (isset($_POST['submitbutton']) & isset($_SESSION['uid'])) {
     </table>
 </form>
 </div>
-
+</body>
 </html>

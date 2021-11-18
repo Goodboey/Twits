@@ -55,7 +55,9 @@ session_start();
 
 <?php
 require_once '/home/mir/lib/db.php';
-$loggedtrue= false;
+$loggedtrue= false; // altid sætte login = false som standard før vi checker om brugeren er logget ind (ellers holder logikken ikke)
+
+// Check om brugeren er logget ind.
 if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
     if (login($_SESSION['uid'], $_SESSION['password'])) {
         $loggedtrue = true;
@@ -63,14 +65,24 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
 }
 
 ?>
+
+<div class="jumbotron jumbotron-fluid" style= "background: orange"> <!-- Flot overskrift til siden med en jumbotron -->
+    <div class="container" >
+        <h1 class="display-4">Twits</h1>
+        <p class="lead">Saml folket på ét sted, på internettet, når som helst.</p>
+    </div>
+</div>
+
 <div class='row'>
 
+    <!-- Filler kolonne, for design-reasons.. -->
     <div class='col-lg-1'>
 
 
     </div>
     <div class='col-lg-9' style='border:darkslateblue; border-style: solid; overflow-y: auto; max-height: 100vh'>
         <?php
+        // Hvis vi er logget ind
         if ($loggedtrue == true){
             echo "<div class= row style='border:grey; border-style: solid; width: relative;'> 
             <form action='main.php' method=post enctype='multipart/form-data' style='width: relative'>
@@ -85,16 +97,16 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
                     <td><textarea type='text' name='pcontent' rows='6' cols='100' width='100%' placeholder='Hvad har du på hjerte?' style = 'resize: none;'></textarea></td>
                 </tr>
                 <tr>
-                    <td><input type='file' name='picture[]' value='Upload et billede!' multiple='multiple'></td>
+                    <td><input type='file' class='btn btn-success btn-lg' name='picture[]' value='Upload et billede!' multiple='multiple'></td>
                 </tr>
                 <tr>
-                    <td><input type='submit' name='submitbtn' value='Post!'></td>
+                    <td><input type='submit' class='btn btn-warning btn-lg' name='submitbtn' value='Post!'></td>
                 </tr>
             </table>
             </form>
             </div>";
             // Hvis brugeren trykker på submitknap og ihvertfald har udfyldt opslag og titel, så lader vi brugeren poste opslaget.
-            if (isset($_POST['submitbtn']) & isset($_POST['ptitle']) & isset($_POST['pcontent'])) {
+            if (isset($_POST['submitbtn']) & !empty($_POST['ptitle']) & !empty($_POST['pcontent'])) {
                 // tilføjer opslaget og henter post id til en variabel
                 $pid = add_post($_SESSION['uid'], $_POST['ptitle'], $_POST['pcontent']);
                 // hvis brugeren har tilføjet et billede tilføjer vi billedet til postet.
@@ -105,7 +117,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
                     for ($i=0; $i < count($_FILES['picture']['name']); $i++){
                         
                         $tempFilePath = $_FILES['picture']['tmp_name'][$i]; // Vi tager den temp fil-sti fra det i'de billede
-                        $tempType = substr($_FILES['picture']['type'][$i], strpos($_FILES['picture']['type'][$i],'/')+1); // Vi kigger på filtypen og gemmer den til en enkel streng
+                        $tempType = "." . substr($_FILES['picture']['type'][$i], strpos($_FILES['picture']['type'][$i],'/')+1); // Vi kigger på filtypen og gemmer den til en enkel streng
                         $iid = add_image($tempFilePath, $tempType); // vi tilføjer billedet, og tilskriver det en variabel da den returnerer image-ID.
                     
                         if ($iid > 0){ // Check om billede id'et er større end 0, måske lidt dumt skrevet men det sørger for at spøgelses billeder ikke kommer med.
@@ -121,14 +133,19 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
         }
 
         $pids = get_pids(); // vi fanger post id'erne fra databasen
+        
         foreach ($pids as $pid) { // for hver post tager vi posts ud til et array
             $posts[] = get_post($pid);
         }
+
         $order = array(); // laver et ordensarray
+        
         foreach ($posts as $post) { // Vi gemmer alle datoerne til vores ordensarray
             $order[] = $post['date'];
         }
+        
         array_multisort($order, SORT_DESC, $posts); // multisort tager et ordens array, med nøgler (datoer) og sorterer datoerne i descending order så vi har de nyeste posts først.
+        
         foreach ($posts as $post) {
             $user = get_user($post['uid']);  //Vi benytter brugerid'et fra posten til at finde info om forfatteren.
             
@@ -138,15 +155,9 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
  
 
             // Vi anvender bootstrap grid til at udforme vores post - "tidslinje"
-            if($loggedtrue){
-                echo "<div onclick='location.href=".'"viewuser.php?uid='.$post['uid'].'"'.";' style='cursor: pointer;'>"; // hvis man er logget ind kan man trykke på postet
-            } else {
-                echo "<div>"; // hvis man ikke er logget ind laver vi bare en tom åben-div, den bliver afsluttet ligemeget hvad.
-            }
             echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . htmlentities($post['title']) . "</h2></div>" . 
-                 "<h3>skrevet af: <a href=\"" . "user.php?uid=" . $user['uid'] . "\" >" .  htmlentities($user['firstname']) . " " . htmlentities($user['lastname']) . "</a></h3><div>". $post['date'] ."</div>";
+                 "<h3>skrevet af: ".  htmlentities($user['firstname']) . " " . htmlentities($user['lastname']) . "</h3><div>". $post['date'] ."</div>";
             
-            echo "</div>";
                  
             //Titlen bliver skrevet og et link bliver lagt ind til brugerens side med forfatterens navn
             if($loggedtrue){
@@ -167,6 +178,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
             foreach ($images as $iid) { //for hvert billede knyttet til posten tilføjer vi et html img tag med billedets path.
                 $path = get_image($iid)['path'];
 
+                // Vi gør billedet lidt flottere med noget css og image wrapper så det ser ud som vi vil have det.
                 echo "<div class = 'image-wrapper' style='max-width: 400px;'><div style='padding: 0 0 60%'><div>
                       <img class='rounded float-right' src=\"" . $path . "\"" . "></div></div></div>";
             }
@@ -180,7 +192,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
                 echo "<section style= 'border:thin; border-style: solid; background-color: white'>";
                 $comment = get_comment($cid); //Vi henter information om den enkelte kommentar fra databasen.
                 //Hvorefter vi indsætter et link til forfatterens. Og derefter kommentarens indhold.
-                echo "<h5><a href=\"" . "user.php?uid=" . $comment['uid'] . "\" >" . htmlentities($comment['uid'])  . "</a></h5>";
+                echo "<h5>" . htmlentities($comment['uid'])  . "</h5>";
                 echo "<p style = 'overflow-wrap: anywhere;'>" . htmlentities($comment['content']) . "</p>";
                 echo "</section>";
 
@@ -191,7 +203,7 @@ if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
 
         ?>
     </div>
-
+    <!-- Venstre kolonne/navbar, lige nu har vi bare knapper til at logge ud/ind og lave ny bruger hvis man ikke er logget ind. -->
     <div class='col-lg-2'>
         <?php
         if($loggedtrue) {

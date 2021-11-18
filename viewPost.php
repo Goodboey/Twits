@@ -25,7 +25,7 @@ require_once '/home/mir/lib/db.php';
     </style>
 </head>
 
-<body>
+<body style="background-color:wheat">
 <?php
     if (isset($_SESSION['uid']) & isset($_SESSION['password'])) {
 
@@ -62,7 +62,7 @@ require_once '/home/mir/lib/db.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     //add_comment($_SESSION['uid'], $post['pid'], $_POST['content']);
 
-    //Logik til tilføjelse af kommentarer:
+    //Logik til tilf�jelse af kommentarer:
 
     if (isset($_POST['addCid'])){
         //We have a pid as get argument, now we check if we have any data on this post:
@@ -74,24 +74,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             //header("Location: /~seno/miniprojekt/main.php");
         }else{
             $content = ($_POST["content"]);
-            //echo "Prøver at tilføje kommentar: " . $_SESSION['uid'] .  $post['pid'] . $content;
+            //echo "Pr�ver at tilf�je kommentar: " . $_SESSION['uid'] .  $post['pid'] . $content;
             add_comment($_SESSION['uid'], $post['pid'], $content);
         }
     }
 
-    //Logik til ændringer af posts:
+    //Logik til �ndringer af posts:
     if(isset($_POST['editPost'])){
         //echo "Someone wants to edit stuffs!?";
-        //TODO sørg for at vi har rettigheder til at ændre denne post.
+        //TODO s�rg for at vi har rettigheder til at �ndre denne post.
         //modify_post(int $pid, string $title, string $content);
         modify_post($_POST['modifyPost'],$_POST['title'],$_POST['content']);
     }
 
     //logik til slettelse af kommentarer:
     if(isset($_POST['delCid'])){
-        //Vi prøver at slette en kommentar.
-        //Vi skal TODO sikre os at vi har at gøre med en bruger som har lov til at slette:
-        //echo "Vi forsøger at slette kommentaren med id: " . $_POST['delCid'];
+        //Vi pr�ver at slette en kommentar.
+        //Vi skal TODO sikre os at vi har at g�re med en bruger som har lov til at slette:
+        //echo "Vi fors�ger at slette kommentaren med id: " . $_POST['delCid'];
         delete_comment($_POST['delCid']);
     }
 
@@ -106,7 +106,7 @@ $user = get_user($post['uid']);  //Vi benytter brugerid'et fra posten til at fin
 
 $isEditingPost= ($_GET['edit']=="true" and $post['uid']==$_SESSION['uid']);
 
-echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['title'] . "</h2></div>" . "<h3>skrevet af: <a href=\"" . "user.php?uid=" . $user['uid'] . "\" >" .  $user['firstname'] . " " . $user['lastname'] . "</a></h3><div>". $post['date'] ."</div>";
+echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . htmlentities($post['title']) . "</h2></div>" . "<h3>skrevet af: <a href=\"" . "user.php?uid=" . $user['uid'] . "\" >" .  htmlentities($user['firstname']) . " " . htmlentities($user['lastname']) . "</a></h3><div>". $post['date'] ."</div>";
             //Titlen bliver skrevet og et link bliver lagt ind til brugerens side med forfatterens navn
 
             //Indhold
@@ -116,9 +116,9 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
             //TODO tilbage knap
             echo "<button><a href='main.php' >Gå tilbage</a></button>";
             //TODO rediger knap
-            if($post['uid']==$_SESSION['uid']) {
-                echo "<form method='get'> 
-                <input type='hidden' id='pid' name='pid' value=" . $post['pid'] . ">
+            if($post['uid']==$_SESSION['uid']){
+            echo "<form method='get'> 
+                <input type='hidden' id='pid' name='pid' value=". $post['pid']  . ">
                 <input type='hidden' id='edit' name='edit' value='true' >
                 <input type='submit' value='Rediger post'>
             </form>
@@ -132,15 +132,15 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
                 echo "
                 <form method='post' action=\"" . htmlspecialchars($_SERVER["PHP_SELF"]) . "?pid=" . $post['pid'] .   "\">
                     <input type='hidden' id='modifyPost' name='modifyPost' value=". $post['pid']  . ">
-                    Titel <br><input type=\"text\" name=\"title\" value=\"" . $post['title'] . "\"> <br>
-                    Indhold <br><textarea rows=\"5\" cols=\"40\" name=\"content\" >". $post['content'] .  " </textarea> <br>
-                    <input type=\"submit\" value=\"Gem ændringer\" name='editPost'>
+                    Titel <br><input type=\"text\" name=\"title\" value=\"" . htmlentities($post['title']) . "\"> <br>
+                    Indhold <br><textarea rows=\"5\" cols=\"40\" name=\"content\" >". htmlentities($post['content']) .  " </textarea> <br>
+                    <input type=\"submit\" value=\"Gem �ndringer\" name='editPost'>
                     </form>
                 ";
 
 
             }else{
-                echo "<p>" . $post['content'] . "</p>";
+                echo "<p>" . htmlentities($post['content']) . "</p>";
 
             }
 
@@ -151,7 +151,7 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
 
             $images = get_iids_by_pid($post['pid']); //Vi henter alle de billed id'er som er knyttet til posten.
             echo "<div class = 'row'>";
-            foreach ($images as $iid) { //for hvert billede knyttet til posten tilføjer vi et html img tag med billedets path.
+            foreach ($images as $iid) { //for hvert billede knyttet til posten tilf�jer vi et html img tag med billedets path.
                 $path = get_image($iid)['path'];
 
                 echo "<div class = 'col-lg-6'><img class='rounded float-right' src=\"" . $path . "\"" . "></div>";
@@ -160,12 +160,12 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
             echo "</div>";
 
             //Kommentarer
-            $comments = get_cids_by_pid($post['pid']); //Vi henter et array af comment ids til oplæggets id
-            foreach ($comments as $cid) { //Vi kører igennem arrayet for hvert kommentar ID
+            $comments = get_cids_by_pid($post['pid']); //Vi henter et array af comment ids til opl�ggets id
+            foreach ($comments as $cid) { //Vi k�rer igennem arrayet for hvert kommentar ID
                 echo "<section style= 'border:thin; border-style: solid; background-color: white'>";
                 $comment = get_comment($cid); //Vi henter information om den enkelte kommentar fra databasen.
-                //Hvorefter vi indsætter et link til forfatterens. Og derefter kommentarens indhold.
-                echo "<h5><a href=\"" . "user.php?uid=" . $comment['uid'] . "\" >" . $comment['uid']  . "</a>";
+                //Hvorefter vi inds�tter et link til forfatterens. Og derefter kommentarens indhold.
+                echo "<h5><a href=\"" . "user.php?uid=" . $comment['uid'] . "\" >" . htmlentities($comment['uid'])  . "</a>";
 
 
                 //Sletning af egen kommentar eller kommentarer fra ens egen post
@@ -179,7 +179,7 @@ echo "<div class='col-lg-12' style='background-color:#FF8300;'><h2>" . $post['ti
 
                 echo "</h5>";
 
-                echo "<p>" . $comment['content'] . "</p>";
+                echo "<p>" . htmlentities($comment['content']) . "</p>";
                 echo "</section>";
             }
 
@@ -201,4 +201,3 @@ echo htmlspecialchars($_SERVER["PHP_SELF"]) . "?pid=" . $post['pid'];
 
 
 </body>
-

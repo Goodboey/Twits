@@ -7,7 +7,7 @@ session_start();
 //Validate that we don't try to create an already existing user.
 function userAlreadyExists($userID){
     $allUsers=get_uids();
-    if(in_array($userID,$allUsers)){ //Dunno if this actually works, but let's test it?!
+    if(in_array($userID,$allUsers)){ // compare user and all users
         return true;
     }
     return false;
@@ -28,7 +28,7 @@ echo "<!doctype html>
         }
     </style>
   </head>
-  <body>
+  <body style='background-color:wheat'>
   <div class='center'>";
 
 if (isset($_POST['username']))
